@@ -1,7 +1,33 @@
 {% extends "auctions/layout.html" %}
+{% load humanize %}
 
 {% block body %}
-    <h2>Active Listings</h2>
 
-    TODO
+<h2>Active Listings</h2>
+
+    <div class="d-flex flex-wrap justify-content-center">
+        {% for listing in listings %}
+        <div class="card mt-2 mr-2" style="width: 18rem;">
+            <img src="{{listing.image}}" class="card-img-top" alt="...">
+            <div class="card-body">
+                <h5 class="card-title"> <a href="{% url 'listing' listing.id %}">{{listing.name}}</a>  </h5>
+                  
+                        <strong>Highest Bid : 
+                            {% if listing.current_price %}
+                                ${{listing.current_price.price|floatformat:2|intcomma}}
+                            {% else %}
+                                no bidder
+                            {% endif %}
+                        </strong> <br>
+
+                        <p>Initial Price : ${{listing.price|floatformat:2|intcomma}}</p>  
+
+                  <p class="card-text">{{listing.description|truncatechars:80}}</p>
+                  <small class="text-muted">Created : {{listing.created_at}}</small>
+            </div>
+        </div>             
+        {% endfor %}
+    </div>
+
+
 {% endblock %}

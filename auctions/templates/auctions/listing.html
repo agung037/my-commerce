@@ -1,0 +1,37 @@
+{% extends "auctions/layout.html" %}
+{% load humanize %}
+{% block body %}
+    <h2>Listing : {{listing.name}}</h2>
+
+
+    <div class="row">
+        <div class="col">
+            <img src="{{listing.image}}" class="img-fluid" alt="Responsive image">
+        </div>
+        <div class="col">
+            <p style="font-size: larger;"> Listed By : {{listing.creator}} on {{listing.created_at}}</p>
+            <p style="font-size: larger;"> Category : {{listing.categories}}</p>
+            <p style="font-size: larger;">Description : {{listing.description}}</p>
+        </div>
+    </div>
+
+    <p class="display-4" >Current Price : 
+        {% if listing.current_price %}
+                ${{listing.current_price.price|floatformat:2|intcomma}}
+            {% else %}
+                ${{listing.price|floatformat:2|intcomma}}
+        {% endif %}
+    
+    </p>
+    
+
+    <div class="form-bid">
+        <form action="" method="POST">
+            {%csrf_token%}
+            <input type="number" name="id_listing" value="{{listing.id}}" hidden>
+            <input type="number" name="bid" class="form-control" step=".01" placeholder="Bid" min="{{listing.current_price.price|add:0.01}}">
+            <input type="submit" value="Place Bid" class="btn btn-primary mt-2">
+        </form>
+    </div>
+
+{% endblock %}
