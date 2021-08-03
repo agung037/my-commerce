@@ -1,6 +1,7 @@
 {% extends "auctions/layout.html" %}
 {% load humanize %}
 {% block body %}
+
     <h2>Listing : {{listing.name}}</h2>
 
 
@@ -9,6 +10,15 @@
             <img src="{{listing.image}}" class="img-fluid" alt="Responsive image">
         </div>
         <div class="col">
+            <form action="{% url 'watchlist' listing.id %}" method="post">
+                {% csrf_token %}
+                {% if watchlist %}
+                <button type="submit" class="btn btn-danger" name="instruction" value="remove">Remove From Watchlist</button>
+                {% else %}
+                <button type="submit" class="btn btn-primary" name="instruction" value="add">Add to Watchlist</button>
+                    
+                {% endif %}
+            </form>
             <p style="font-size: larger;"> Listed By : {{listing.creator}} on {{listing.created_at}}</p>
             <p style="font-size: larger;"> Category : {{listing.categories}}</p>
             <p style="font-size: larger;">Description : {{listing.description}}</p>
@@ -29,7 +39,7 @@
         <form action="" method="POST">
             {%csrf_token%}
             <input type="number" name="id_listing" value="{{listing.id}}" hidden>
-            <input type="number" name="bid" class="form-control" step=".01" placeholder="Bid" min="{{listing.current_price.price|add:0.01}}">
+            <input type="number" name="bid" class="form-control" step=".01" placeholder="Bid" min="{{listing.current_price.price|add:0.01}}" required>
             <input type="submit" value="Place Bid" class="btn btn-primary mt-2">
         </form>
     </div>

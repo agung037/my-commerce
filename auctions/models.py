@@ -20,7 +20,7 @@ class Listing(models.Model):
 
 
 class User(AbstractUser):
-    watchlist = models.ManyToManyField(Listing, blank=True, related_name="watchlist")
+    pass
     
 
 
@@ -41,3 +41,11 @@ class Bid(models.Model):
     def __str__(self):
         return f"{self.name} {self.price}"
 
+
+
+class Watchlist(models.Model):
+    user = models.ForeignKey("User", on_delete=CASCADE, null=True)
+    listings = models.ForeignKey("Listing", null=True, blank=True, on_delete=CASCADE)
+
+    def __str__(self):
+        return f"{self.user} -- {self.listings}"

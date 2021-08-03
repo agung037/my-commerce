@@ -1,12 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Max
 
-from .models import Bid, Categories, Listing, User
+from .models import Bid, Categories, Listing, User, Watchlist
 from .forms import CreateListingForm
 
 
@@ -103,11 +103,16 @@ def listing(request, pk):
 
 
     listing = Listing.objects.get(id=pk)
-    watchlist = request.user.watchlist
+
+    # cek apakah listing tersebut ada di dalam watchlist
+    watchlist = False
+    if Watchlist.objects.filter(listings=listing, user=request.user).exists():
+        watchlist = True
 
     return render(request, "auctions/listing.html", {
         "pk":pk,
         "listing": listing,
+        "watchlist": watchlist
 
     })
 
@@ -136,3 +141,22 @@ def create_listing_view(request):
         "categories": Categories.objects.all(),
         "form": form
     })
+
+
+def watchlist(request, pk):
+
+    if request.method == "POST":
+        instruction = request.POST["instruction"]
+        listing = Listing.objects.get(id=pk)
+
+        # add into db
+        if instruction == "add":
+            w = Watchlist(user = request.user, listings = listing)
+            w.save()
+            print("added")
+        else:
+            w = Watchlist.objects.get(user = request.user, listings=listing)
+            w.delete()
+            print("deleted")
+
+    return redirect(f'/listing/{pk}')
