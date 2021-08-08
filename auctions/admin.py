@@ -14,4 +14,5 @@ admin.site.register(Listing, ListingAdmin)
 admin.site.register(Categories)
 admin.site.register(Bid, BidAdmin)
 admin.site.register(Watchlist)
+admin.site.register(Comment)
 

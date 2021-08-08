@@ -5,15 +5,31 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Max
+from django.template import RequestContext
 
-from .models import Bid, Categories, Listing, User, Watchlist
+from .models import Bid, Categories, Comment, Listing, User, Watchlist
 from .forms import CreateListingForm
 
 
 def index(request):
     listings = Listing.objects.filter(is_active=True)
+
+    # categories
+    categories = Categories.objects.all()
+
+
+    # cari watchlist yang ada pada user
+    watchlist_list = []
+    if request.user.username:
+        watchlist = Watchlist.objects.filter(user = request.user)
+        for w in watchlist:
+            watchlist_list.append(w.listings)
+
+
     return render(request, "auctions/index.html", {
-        "listings": listings
+        "listings": listings,
+        "wachlist": watchlist_list,
+        "categories": categories
     })
 
 
@@ -71,19 +87,17 @@ def register(request):
 
 
 def listing(request, pk):
-
     if request.method == "POST":
         # get the highest bid
         highest_bid = Bid.objects.filter(name=pk).aggregate(Max('price')).get('price__max')
         
-        print(f"highest bid {highest_bid}")
 
         name = Listing.objects.get(id=request.POST["id_listing"])
         price = float(request.POST["bid"])
         bidder = request.user
         
 
-        if highest_bid is not None and price < highest_bid:
+        if highest_bid is not None and price < highest_bid or price < name.price:
             return HttpResponse("Error : price has been updated, your bidder is below current price")
         else:
             b = Bid(name=name, price=price, bidder=bidder)
@@ -99,20 +113,35 @@ def listing(request, pk):
 
             # print(latest_bidder)
 
-            return HttpResponseRedirect(reverse("listing", args=(request.POST["id_listing"])))
+            return redirect(f'/listing/{pk}')
 
+    
 
     listing = Listing.objects.get(id=pk)
 
+    # get the winner
+    winner = Bid.objects.filter(listing=listing).first()
+    print(winner)
+
+    # get all bid from current listing
+    bid = Bid.objects.filter(name=listing)
+
     # cek apakah listing tersebut ada di dalam watchlist
     watchlist = False
-    if Watchlist.objects.filter(listings=listing, user=request.user).exists():
-        watchlist = True
+    if request.user.username:
+        if Watchlist.objects.filter(listings=listing, user=request.user).exists():
+            watchlist = True
+
+    # get all comments in current listing
+    comments = Comment.objects.filter(listing=pk)
 
     return render(request, "auctions/listing.html", {
         "pk":pk,
         "listing": listing,
-        "watchlist": watchlist
+        "watchlist": watchlist,
+        "bid": bid,
+        "comments": comments,
+        "winner": winner
 
     })
 
@@ -142,9 +171,25 @@ def create_listing_view(request):
         "form": form
     })
 
+def watchlist(request):
+    listings = Listing.objects.all()
+    
+    # cari watchlist yang ada pada user
+    watchlist_list = []
+    if request.user.username:
+        watchlist = Watchlist.objects.filter(user = request.user)
+        for w in watchlist:
+            watchlist_list.append(w.listings)
 
-def watchlist(request, pk):
+    return render(request, "auctions/watchlist.html", {
+        "listings": listings,
+        "wachlist": watchlist_list
+    })
 
+
+
+
+def watchlist_edit(request, pk):
     if request.method == "POST":
         instruction = request.POST["instruction"]
         listing = Listing.objects.get(id=pk)
@@ -159,4 +204,49 @@ def watchlist(request, pk):
             w.delete()
             print("deleted")
 
+    return redirect(f'/listing/{pk}')
+
+
+def category(request, pk):
+
+    listings = Listing.objects.filter(categories=pk)
+    category_name = Categories.objects.get(id=pk)
+    categories = Categories.objects.all()
+
+    # cari watchlist yang ada pada user
+    watchlist_list = []
+    if request.user.username:
+        watchlist = Watchlist.objects.filter(user = request.user)
+        for w in watchlist:
+            watchlist_list.append(w.listings)
+
+
+    return render(request, "auctions/category.html", {
+        "listings" : listings,
+        "category_name" : category_name,
+        "categories": categories,
+        "wachlist": watchlist_list
+    })
+
+
+def listing_status(request, pk):
+
+    if request.method == "POST":
+        if request.POST["instruction"] == "close":
+            Listing.objects.filter(id=pk).update(is_active=False)
+        else:
+            Listing.objects.filter(id=pk).update(is_active=True)
+
+    return redirect(f'/listing/{pk}')
+        
+
+def comment(request, pk):
+
+    if request.method == "POST":
+        comment = request.POST["comment"]
+        listing = Listing.objects.get(id=pk)
+        c = Comment(comment=comment, user=request.user, listing=listing)
+        c.save()
+        return redirect(f'/listing/{pk}')
+    
     return redirect(f'/listing/{pk}')

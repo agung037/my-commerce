@@ -23,8 +23,6 @@ class User(AbstractUser):
     pass
     
 
-
-
 class Categories(models.Model):
     title = models.CharField(max_length=75)
     
@@ -42,10 +40,19 @@ class Bid(models.Model):
         return f"{self.name} {self.price}"
 
 
-
 class Watchlist(models.Model):
     user = models.ForeignKey("User", on_delete=CASCADE, null=True)
     listings = models.ForeignKey("Listing", null=True, blank=True, on_delete=CASCADE)
 
     def __str__(self):
         return f"{self.user} -- {self.listings}"
+
+
+class Comment(models.Model):
+    user = models.ForeignKey("User", on_delete=CASCADE, null=True)
+    listing = models.ForeignKey("Listing", null=True, blank=True, on_delete=CASCADE)
+    comment = models.TextField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user}"

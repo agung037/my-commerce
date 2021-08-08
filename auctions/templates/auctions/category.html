@@ -3,7 +3,8 @@
 
 {% block body %}
 
-<h2>Active Listings</h2>
+<h2>All Listing in : {{category_name}}</h2>
+
 <!-- categories -->
 <div class="dropdown">
     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -11,7 +12,13 @@
     </button>
     <div class="dropdown-menu">
         {% for category in categories %}
-            <a class="dropdown-item" href="{% url 'category' category.id %}">{{category}}</a>
+            {% if category == category_name %}
+                <a class="dropdown-item disabled" href="{% url 'category' category.id %}">{{category}}</a>
+                {% else %}
+                <a class="dropdown-item" href="{% url 'category' category.id %}">{{category}}</a>
+
+            {% endif %}
+
         {% endfor %}
     </div>
 </div>
@@ -28,16 +35,17 @@
             <div class="card-body">
                 <h5 class="card-title"> <a href="{% url 'listing' listing.id %}">{{listing.name}}</a>  
                     {% if listing in wachlist %}<i class="bi bi-star-fill"></i>{% endif %}
+                    {% if not listing.is_active %} (Closed) {% endif %}
                 </h5>
                         <strong>Highest Bid : 
                             {% if listing.current_price %}
-                                ${{listing.current_price.price|intcomma}}
+                                ${{listing.current_price.price|floatformat:2|intcomma}}
                             {% else %}
                                 no bidder
                             {% endif %}
                         </strong> <br>
 
-                        <p>Initial Price : ${{listing.price|intcomma}}</p>  
+                        <p>Initial Price : ${{listing.price|floatformat:2|intcomma}}</p>  
 
                   <p class="card-text">{{listing.description|truncatechars:80}}</p>
                   <small class="text-muted">Created : {{listing.created_at}}</small>
@@ -45,6 +53,5 @@
         </div>             
         {% endfor %}
     </div>
-
 
 {% endblock %}

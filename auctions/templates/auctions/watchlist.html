@@ -3,22 +3,10 @@
 
 {% block body %}
 
-<h2>Active Listings</h2>
-<!-- categories -->
-<div class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      Categories
-    </button>
-    <div class="dropdown-menu">
-        {% for category in categories %}
-            <a class="dropdown-item" href="{% url 'category' category.id %}">{{category}}</a>
-        {% endfor %}
-    </div>
-</div>
-<!-- end of categories -->
-
+<h2>Your Watchlist</h2>
     <div class="d-flex flex-wrap justify-content-center">
         {% for listing in listings %}
+        {% if listing in wachlist %}
         <div class="card mt-2 mr-2" style="width: 18rem;">
             {% if listing.image %}
             <img src="{{listing.image}}" class="card-img-top" alt="...">
@@ -31,20 +19,19 @@
                 </h5>
                         <strong>Highest Bid : 
                             {% if listing.current_price %}
-                                ${{listing.current_price.price|intcomma}}
+                                ${{listing.current_price.price|floatformat:2|intcomma}}
                             {% else %}
                                 no bidder
                             {% endif %}
                         </strong> <br>
 
-                        <p>Initial Price : ${{listing.price|intcomma}}</p>  
+                        <p>Initial Price : ${{listing.price|floatformat:2|intcomma}}</p>  
 
                   <p class="card-text">{{listing.description|truncatechars:80}}</p>
                   <small class="text-muted">Created : {{listing.created_at}}</small>
             </div>
-        </div>             
+        </div>     
+        {% endif %}        
         {% endfor %}
     </div>
-
-
 {% endblock %}
